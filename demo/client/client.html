@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Client Demo</title>
+
+        <style type="text/css">
+            .form-style-2{
+                max-width: 500px;
+                padding: 20px 12px 10px 20px;
+                font: 13px Arial, Helvetica, sans-serif;
+            }
+            .form-style-2-heading{
+                font-weight: bold;
+                font-style: italic;
+                border-bottom: 2px solid #ddd;
+                margin-bottom: 20px;
+                font-size: 15px;
+                padding-bottom: 3px;
+            }
+            .form-style-2 label{
+                display: block;
+                margin: 0px 0px 15px 0px;
+            }
+            .form-style-2 label > span{
+                width: 100px;
+                font-weight: bold;
+                float: left;
+                padding-top: 8px;
+                padding-right: 5px;
+            }
+            .form-style-2 span.required{
+                color:red;
+            }
+            .form-style-2 .tel-number-field{
+                width: 40px;
+                text-align: center;
+            }
+            .form-style-2 input.input-field, .form-style-2 .select-field{
+                width: 48%;
+            }
+            .form-style-2 input.input-field,
+            .form-style-2 .tel-number-field,
+            .form-style-2 .textarea-field,
+             .form-style-2 .select-field{
+                box-sizing: border-box;
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                border: 1px solid #C2C2C2;
+                box-shadow: 1px 1px 4px #EBEBEB;
+                -moz-box-shadow: 1px 1px 4px #EBEBEB;
+                -webkit-box-shadow: 1px 1px 4px #EBEBEB;
+                border-radius: 3px;
+                -webkit-border-radius: 3px;
+                -moz-border-radius: 3px;
+                padding: 7px;
+                outline: none;
+            }
+            .form-style-2 .input-field:focus,
+            .form-style-2 .tel-number-field:focus,
+            .form-style-2 .textarea-field:focus,
+            .form-style-2 .select-field:focus{
+                border: 1px solid #0C0;
+            }
+            .form-style-2 .textarea-field{
+                height:100px;
+                width: 55%;
+            }
+            .form-style-2 input[type=submit],
+            .form-style-2 input[type=button]{
+                border: none;
+                padding: 8px 15px 8px 15px;
+                background: #FF8500;
+                color: #fff;
+                box-shadow: 1px 1px 4px #DADADA;
+                -moz-box-shadow: 1px 1px 4px #DADADA;
+                -webkit-box-shadow: 1px 1px 4px #DADADA;
+                border-radius: 3px;
+                -webkit-border-radius: 3px;
+                -moz-border-radius: 3px;
+            }
+            .form-style-2 input[type=submit]:hover,
+            .form-style-2 input[type=button]:hover{
+                background: #EA7B00;
+                color: #fff;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="form-style-2">
+    <div class="form-style-2-heading">Client input</div>
+    <form action="" method="post">
+    <label><span>High</span><input type="text" class="input-field" id="high" value="" /></label>
+    <label><span>Low</span><input type="text" class="input-field" id="low" value="" /></label>
+    <label><span>Response</span><textarea id="response" class="textarea-field"></textarea></label>
+
+    <label><span> </span><input type="button" value="Submit" onclick="onSubmit()"/></label>
+    </form>
+    </div>
+
+        <script>
+            var websocket = new WebSocket("ws://127.0.0.1:5678/");
+            inputHigh = document.getElementById('high');
+            inputLow = document.getElementById('low');
+            outputResult = document.getElementById('response');
+            function onSubmit() {
+                websocket.send(JSON.stringify({action: 'bar', 'high':inputHigh.value, 'low': inputLow.value}));
+            };
+            websocket.onmessage = function (event) {
+                data = JSON.parse(event.data);
+                switch (data.type) {
+                    case 'result':
+                        outputResult.textContent = data.value;
+                        break;
+                    default:
+                        console.error("unsupported event", data);
+                }
+            };
+        </script>
+
+    </body>
+</html>
