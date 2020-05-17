@@ -36,9 +36,9 @@ To start server
 python3 run.py start server 
 ```
 
-To start market data publisher 
+To start market data publisher
 ```
-python3 run.py start publisher --ticker=GOOGL --date=2019.05.02
+python3 run.py start publisher --date=2019.05.02 --delay=1000
 ```
 
 To start client (this will open an html page in browser)
