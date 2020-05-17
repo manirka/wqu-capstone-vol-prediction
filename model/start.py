@@ -11,14 +11,13 @@ class Model(Listener):
     def __init__(self, ticker, vol_curve, initial_volume_forecast, k0=0.8):
         super().__init__()
         self._ticker = ticker
-        self._vc = vol_curve
         self._k0 = k0
         self._initial_log_volume_forecast = np.log(initial_volume_forecast)
 
-        base = pd.DataFrame(columns=['v', 'x', 'n', 'xbar', 'mu', 'predV'],
-                            index=pd.date_range("09:30", "15:59", freq="1min").time)
-        self._bars = base.join(self._vc)
-        self._bars['n'] = np.arange(1, len(self._vc) + 1)
+        self._bars = pd.DataFrame(columns=['v', 'x', 'n', 'xbar', 'mu', 'predV'],
+                                  index=pd.date_range("09:30", "15:59", freq="1min").time)
+        self._bars['vc'] = vol_curve
+        self._bars['n'] = np.arange(1, len(vol_curve) + 1)
         log.info(f'Created model {self._ticker}')
 
     def on_message(self, message):
