@@ -72,9 +72,10 @@ def start_server(settings):
     for s in settings.sections():
         if s.startswith('model.'):
             model_name = s.split('.')[1]
-            initial_volume_forecast = float(settings[s]['initial_volume_forecast'])
-            vol_curve = eval(re.sub('(\\d) ', '\\1,', settings[s]['vol_curve']))
-            handler.add_listener(model_name, Model(model_name, vol_curve, initial_volume_forecast))
+            vol_curve = eval(settings[s]['vol_curve'])
+            log_volume_forecast = float(settings[s]['log_volume_forecast'])
+            log_volume_var = float(settings[s]['log_volume_var'])
+            handler.add_listener(model_name, Model(model_name, vol_curve, log_volume_forecast, log_volume_var))
             app.add_routes([web.get(f'/client/{model_name}/', handler.handle_client)])
             app.add_routes([web.get(f'/md/{model_name}/', handler.handle_marketdata)])
 
