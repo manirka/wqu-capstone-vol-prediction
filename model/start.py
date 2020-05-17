@@ -1,10 +1,11 @@
 import logging.config
 from statistics import mean
+
+import pandas as pd
+
 from server.wshandler import Listener
 
 log = logging.getLogger(__name__)
-
-import pandas as pd
 
 
 class Model(Listener):

@@ -9,14 +9,15 @@ log = logging.getLogger(__name__)
 
 
 class IEXDownloader:
-    def __init__(self, iex_token):
+    def __init__(self, iex_token, from_date=datetime(2020, 1, 1), to_date=datetime.now()):
         self._iex_token = iex_token
-        self._from = datetime(2020, 1, 1)
-        self._to = datetime.now()
+        self._from = from_date
+        self._to = to_date
 
     def download(self, ticker):
         log.info(f'Loading intraday data for {ticker}')
-        path = f'data/intraday/{ticker}_intraday.pkl'
+        path = f'data/intraday/{ticker}_intraday.{self._from.strftime("%Y-%m-%d")}_{self._to.strftime("%Y-%m-%d")}.pkl'
+        print(f'Target file path {path}')
 
         os.environ['IEX_TOKEN'] = self._iex_token
         dfs = []
