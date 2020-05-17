@@ -1,6 +1,7 @@
+import datetime
 import logging.config
 import json
-from model.start import Bar
+import pandas as pd
 
 log = logging.getLogger(__name__)
 
@@ -37,24 +38,25 @@ class MessageConverter(Marshaller, Unmarshaller):
         parsed = json.loads(request)
         unmarshaller = self._unmarshallers.get(parsed['action'])
         if not unmarshaller:
-            raise ValueError('Unmarshaller not found for action {}'.format(parsed['action']))
+            raise ValueError(f"Unmarshaller not found for action {parsed['action']}")
         return unmarshaller.unmarshall(parsed)
 
     def marshall(self, message):
         marshaller = self._marshallers.get(message.__class__.__name__)
         if not marshaller:
-            raise ValueError('Marshaller not found for class {}'.format(message.__class__.__name__))
+            raise ValueError(f'Marshaller not found for class {message.__class__.__name__}')
         return marshaller.marshall(message)
 
 
 class BarUnmarshaller(Unmarshaller):
     def unmarshall(self, request):
-        try:
-            return Bar(float(request['high']), float(request['low']))
-        except:
-            return Bar(0, 0)
+        return pd.Series({f: request[f] for f in ['ticker', 'open', 'close', 'volume']},
+                      name=datetime.datetime.strptime(request['datetime'], '%Y-%m-%d %H:%M:%S'))
 
+class SubUnmarshaller(Unmarshaller):
+    def unmarshall(self, request):
+        return pd.Series({f: request[f] for f in ['ticker', 'start', 'end']}, name='subscription')
 
-class FloatMarshaller(Marshaller):
+class NumberMarshaller(Marshaller):
     def marshall(self, value):
         return {'type': 'result', 'value': value}

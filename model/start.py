@@ -4,30 +4,38 @@ from server.wshandler import Listener
 
 log = logging.getLogger(__name__)
 
-
-class Bar:
-    def __init__(self, high, low):
-        self.high = high
-        self.low = low
-
-    def calc(self):
-        return self.high + self.low
+import pandas as pd
 
 
 class Model(Listener):
 
-    def __init__(self):
+    def __init__(self, ticker):
         super().__init__()
-        self.bars = []
-        log.info('Created class {}   '.format(__name__))
+        self._ticker = ticker
+        self._bars = pd.DataFrame(columns=['ticker', 'open', 'close', 'volume'])
+        log.info(f'Created model {self._ticker}')
 
     def bootstrap(self):
         log.debug('Bootstrapped')
 
-    def onmessage(self, bar):
-        log.info('Updated')
-        self.bars.append(bar.calc())
-        return mean(self.bars)
+    def onmessage(self, message):
+        if isinstance(message, pd.Series):
+            if message.name == 'subscription':
+                return self.onsubscription(message)
+            else:
+                return self.onbar(message)
+        else:
+            return 0
+
+    def onsubscription(self, message):
+        # TODO respond with vol curve series and volume
+        return -1
+
+    def onbar(self, message):
+        # TODO respond with remaining volume
+        log.info('Market data update')
+        self._bars.loc[message.name] = message
+        return mean(self._bars['volume'])
 
     def stop(self):
-        log.error('Stopped')
+        log.info(f'Stopped model {self._ticker}')

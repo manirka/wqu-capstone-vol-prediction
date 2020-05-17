@@ -16,25 +16,37 @@ Give examples
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+1. Create new virtual environment
+    ```
+    python3 -m venv capstone
+    ```
+2. Activate created environment
+    ```
+    source capstone/bin/activate
+    ```
+3. Install required libraries
+    ```
+    pip3 install -r requirements.txt
+    ```
 
-Say what the step will be
+## Running 
+
+To start server 
+```
+python3 run.py start server 
+```
+
+To start market data publisher 
+```
+python3 run.py start publisher --ticker=GOOGL --date=2019.05.02
+```
+
+To start client (this will open an html page in browser)
 
 ```
-Give the example
+python3 run.py start client --ticker=GOOGL
 ```
 
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
 
 ### Break down into end to end tests
 
@@ -72,13 +84,10 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Andrey Vershinin**
+* **Marina Duma**
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+See also the list of [contributors](https://github.com/manirka/wqu-capstone-vol-prediction/blob/master/CONTRIBUTORS.md) who participated in this project.
 
 ## Acknowledgments
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Client Demo</title>
+        <title>TICKER Client</title>
 
         <style type="text/css">
             .form-style-2{
@@ -87,23 +87,49 @@
     </head>
     <body>
     <div class="form-style-2">
-    <div class="form-style-2-heading">Client input</div>
+    <div class="form-style-2-heading" id="form-title">TICKER Client</div>
     <form action="" method="post">
-    <label><span>High</span><input type="text" class="input-field" id="high" value="" /></label>
-    <label><span>Low</span><input type="text" class="input-field" id="low" value="" /></label>
-    <label><span>Response</span><textarea id="response" class="textarea-field"></textarea></label>
+    <label><span>Start</span><input type="time" class="input-field" id="start" value="" min="09:00" max="18:00"/></label>
+    <label><span>End</span><input type="time" class="input-field" id="end" value="" min="09:00" max="18:00"/></label>
+    <label><span>Volume</span><textarea id="response" class="textarea-field"></textarea></label>
 
-    <label><span> </span><input type="button" value="Submit" onclick="onSubmit()"/></label>
+    <label><span> </span><input type="button" value="Subscribe" onclick="onSubmit()"/></label>
     </form>
     </div>
 
         <script>
-            var websocket = new WebSocket("ws://127.0.0.1:5678/");
-            inputHigh = document.getElementById('high');
-            inputLow = document.getElementById('low');
+            //#var args = location.search.substring(1).split("&");
+            //#var params = {}
+            //#args.forEach(function(arg){
+            //#    var pair = arg.split("=");
+            //#    params[pair[0]] = pair[1];
+            //#});
+            //#formTitle = document.getElementById('form-title');
+            //#formTitle.textContent = params['ticker'] + ' Client';
+
+            var websocket = new WebSocket("ws://HOST:PORT/client/TICKER/");
+            inputStart = document.getElementById('start');
+            inputEnd = document.getElementById('end');
             outputResult = document.getElementById('response');
             function onSubmit() {
-                websocket.send(JSON.stringify({action: 'bar', 'high':inputHigh.value, 'low': inputLow.value}));
+                var startTime = inputStart.value;
+                var endTime = inputEnd.value;
+                if (endTime < startTime) {
+                    alert('Start time should be before end time');
+                } else if (inputStart.value.length == 0 || inputEnd.value.length == 0) {
+                    alert('Input both start and end times');
+                } else {
+                    websocket.send(JSON.stringify({action: 'sub', ticker:'TICKER', start:inputStart.value, end:inputEnd.value}));
+                }
+            };
+
+            websocket.onopen = function() {
+                var formTitle = document.getElementById('form-title')
+                formTitle.textContent = formTitle.textContent + ': Connected';
+            };
+            websocket.onerror = function(error) {
+                var formTitle = document.getElementById('form-title')
+                formTitle.textContent = formTitle.textContent + ': Connection Error';
             };
             websocket.onmessage = function (event) {
                 data = JSON.parse(event.data);

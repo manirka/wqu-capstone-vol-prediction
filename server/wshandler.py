@@ -13,29 +13,71 @@ class Listener:
         return None
 
 
-class WSHandler:
-    def __init__(self, message_converter, listener_class):
+class WSHandler(Listener):
+    def __init__(self, message_converter):
+        super().__init__()
         self._message_converter = message_converter
-        if not issubclass(listener_class, Listener):
-            raise ValueError('Second argument should be a subsclass of Listener')
-        self._listener_class = listener_class
+        self._message_listeners = {}
+        self._clients = {}
 
+    def add_listener(self, key, listener):
+        if not isinstance(listener, Listener):
+            raise ValueError('Listener must be a subsclass of Listener')
+        self._message_listeners[key] = listener
+        self._clients[key] = []
 
-    async def handle(self, request):
-        log.info('websocket connection opened')
+    def path_to_key(self, path):
+        return path.split('/')[2]
 
-        listener = self._listener_class()
+    def on_client_connect(self, key, ws):
+        self._clients[key].append(ws)
+
+    def on_client_disconnect(self, key, ws):
+        if key in self._clients:
+            self._clients[key].remove(ws)
+
+    async def notify_clients(self, key, message):
+        for ws in self._clients[key]:
+            await ws.send_json(message)
+
+    async def handle_marketdata(self, request):
+        key = self.path_to_key(request.path)
+        listener = self._message_listeners[key]
+        log.info(f'{key} market data connection opened')
 
         ws = web.WebSocketResponse()
         await ws.prepare(request)
 
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
+                log.info(f'received MD {msg.data}')
+                response = listener.onmessage(self._message_converter.unmarshall(msg.data))
+                # on market data update notify all clients
+                await self.notify_clients(key, self._message_converter.marshall(response))
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                log.info(f'ws connection closed with exception {ws.exception()}')
+
+        log.info(f'{key} market data connection closed')
+
+        return ws
+
+    async def handle_client(self, request):
+        key = self.path_to_key(request.path)
+        listener = self._message_listeners[key]
+
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+
+        self.on_client_connect(key, ws)
+        log.info(f'{key} client connection opened')
+
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
                 response = listener.onmessage(self._message_converter.unmarshall(msg.data))
                 await ws.send_json(self._message_converter.marshall(response))
             elif msg.type == aiohttp.WSMsgType.ERROR:
-                log.info('ws connection closed with exception %s' % ws.exception())
+                log.info(f'ws connection closed with exception {ws.exception()}')
 
-        log.info('websocket connection closed')
-
+        self.on_client_disconnect(key, ws)
+        log.info(f'{key} client connection closed')
         return ws

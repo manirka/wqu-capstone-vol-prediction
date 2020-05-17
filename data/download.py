@@ -21,11 +21,16 @@ class IEXDownloader:
         os.environ['IEX_TOKEN'] = self._iex_token
         dfs = []
         for dt in pd.date_range(self._from, self._to, freq='B'):
-            log.info(f'Loading date {dt}')
+            print(f"Loading intraday data for {dt}")
             df = get_historical_intraday(ticker, dt, output_format='pandas')
             if len(df) > 0:
-                df = df.loc[:, ['date', 'open', 'close', 'volume']]
+                df = df.loc[:, ['date', 'marketOpen', 'marketClose', 'marketVolume']]
+                df.rename(columns={'marketOpen': 'open', 'marketClose': 'close', 'marketVolume': 'volume'},
+                          inplace=True)
                 dfs.append(df)
 
-        pd.concat(dfs).to_pickle(path)
-        log.info(f'Saved intraday data to {path}')
+        intraday = pd.concat(dfs)
+        intraday.index = pd.to_datetime(intraday.index)
+        intraday.date = pd.to_datetime(intraday.date)
+        print(f"Saved intraday data to {path}")
+        intraday.to_pickle(path)
