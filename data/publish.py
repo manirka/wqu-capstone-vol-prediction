@@ -15,7 +15,7 @@ class TickerPublisher:
             log.error(f'No data found for {self._ticker} on {self._date.date()}. Market data won"t be published')
 
     def load_data(self):
-        path = f'./data/intraday/{self._ticker}_intraday_2019-01-01_2019-12-31.pkl'
+        path = f'./data/intraday/{self._ticker}_intraday.2019-01-01_2019-12-31.pkl'
         all_bars = pd.read_pickle(path)
         return all_bars[all_bars['date'] == self._date]
 

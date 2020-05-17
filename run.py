@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging.config
 import os
+import re
 
 logging.config.fileConfig('config/logging.conf')
 log = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ def parse_arguments():
     args_parser.add_argument("--from", help="Start date for downloading data", required=False)
     args_parser.add_argument("--to", help="End date for downloading data", required=False)
     args_parser.add_argument("--ticker", help="Ticker for client", required=False, default='GOOGL')
-    args_parser.add_argument("--delay", help="Delay in milliseconds for publisher", required=False, default=1000)
+    args_parser.add_argument("--delay", help="Delay in milliseconds for publisher", required=False, type=lambda d: int(d), default=1000)
     args_parser.add_argument("--date", help="Date for publisher", required=False, type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), default='2019-05-01')
 
     return args_parser.parse_args()
@@ -61,8 +62,9 @@ def start_server(settings):
     message_converter = MessageConverter()
     message_converter.register_unmarshaller('bar', BarUnmarshaller())
     message_converter.register_unmarshaller('sub', SubUnmarshaller())
-    message_converter.register_marshaller('float', NumberMarshaller())
+    message_converter.register_marshaller('float64', NumberMarshaller())
     message_converter.register_marshaller('int', NumberMarshaller())
+    message_converter.register_marshaller('pandas.Series', SeriesMarshaller())
 
     handler = WSHandler(message_converter)
     app = web.Application()
@@ -70,7 +72,9 @@ def start_server(settings):
     for s in settings.sections():
         if s.startswith('model.'):
             model_name = s.split('.')[1]
-            handler.add_listener(model_name, Model(model_name))
+            initial_volume_forecast = float(settings[s]['initial_volume_forecast'])
+            vol_curve = eval(re.sub('(\\d) ', '\\1,', settings[s]['vol_curve']))
+            handler.add_listener(model_name, Model(model_name, vol_curve, initial_volume_forecast))
             app.add_routes([web.get(f'/client/{model_name}/', handler.handle_client)])
             app.add_routes([web.get(f'/md/{model_name}/', handler.handle_marketdata)])
 

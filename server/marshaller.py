@@ -50,8 +50,10 @@ class MessageConverter(Marshaller, Unmarshaller):
 
 class BarUnmarshaller(Unmarshaller):
     def unmarshall(self, request):
-        return pd.Series({f: request[f] for f in ['ticker', 'open', 'close', 'volume']},
-                      name=datetime.datetime.strptime(request['datetime'], '%Y-%m-%d %H:%M:%S'))
+        timestamp = datetime.datetime.strptime(request['datetime'], '%Y-%m-%d %H:%M:%S')
+        return pd.Series({'ticker':request['ticker'], 'time':timestamp.time() ,'volume':request['volume']}, name=timestamp)
+#        return pd.Series({f: request[f] for f in ['ticker', 'open', 'close', 'volume']},
+#                      name=datetime.datetime.strptime(request['datetime'], '%Y-%m-%d %H:%M:%S'))
 
 class SubUnmarshaller(Unmarshaller):
     def unmarshall(self, request):
@@ -60,3 +62,7 @@ class SubUnmarshaller(Unmarshaller):
 class NumberMarshaller(Marshaller):
     def marshall(self, value):
         return {'type': 'result', 'value': value}
+
+class SeriesMarshaller(Marshaller):
+    def marshall(self, value):
+        return {'type': 'result', 'value': value[0]}

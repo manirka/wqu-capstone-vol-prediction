@@ -18,7 +18,7 @@ class Model(Listener):
                                   index=pd.date_range("09:30", "15:59", freq="1min").time)
         self._bars['vc'] = vol_curve
         self._bars['n'] = np.arange(1, len(vol_curve) + 1)
-        log.info(f'Created model {self._ticker}')
+        log.info(f'{self._ticker} model created')
 
     def on_message(self, message):
         if isinstance(message, pd.Series):
@@ -30,10 +30,10 @@ class Model(Listener):
             return 0
 
     def on_subscription(self, _):
-        return self._vc
+        return self._bars['vc']
 
     def on_bar(self, message):
-        log.info(f'Market data update: {message}')
+        log.info(f'{self._ticker} time: {message.time}, volume: {message.volume}')
         t = message.time
         self._bars.loc[t, 'v'] = v = message.volume
         self._bars.loc[t, 'x'] = x = np.log(v / self._bars.loc[t, 'vc'])
@@ -46,4 +46,4 @@ class Model(Listener):
         return predV
 
     def stop(self):
-        log.info(f'Stopped model {self._ticker}')
+        log.info(f'{self._ticker} model stopped')
