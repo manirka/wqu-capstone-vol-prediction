@@ -1,8 +1,8 @@
 # WQU Capstone Project - Group 23
 
-This is an open source library which implements Bayesian updating for intraday volume prediction. 
+This is an open source library implementing Bayesian updating for intraday volume prediction. This library can be used in replay and real-time by trading algos sensitive to trading volume availability and thus requiring intra-day trading volume forecast.
 
-To train and test or model we used one-minute bars of the following stocks: FB, MSFT, GOOGL, JNJ, V downloaded from [IEX Cloud](https://iexcloud.io/).
+To train and test our model we used one-minute bars of the following stocks: FB, MSFT, GOOGL, JNJ, V downloaded from [IEX Cloud](https://iexcloud.io/).
 
 Library consists of the following components:
 
@@ -47,6 +47,8 @@ To start client (this will open an html page in browser)
 python3 run.py start client --ticker=GOOGL
 ```
 
+TODO: automate and add command for model calibration (see **Outstanding Tasks** section).
+
 ## Authors
 
 * **Andrey Vershinin**
@@ -56,6 +58,7 @@ See also the list of [contributors](https://github.com/manirka/wqu-capstone-vol-
 
 ## Outstanding Tasks
 
-1. Support of client subscription to time interval. As the main use-case for our library is trading algo requiring precise forecast of the trading volume within some time interval, such as VWAP, we need to implement support of client subscription to time interval when client receives volume curve normalized to requested time interval. Estimated time: 4 hours.
-2. Calibration automation. Currently calibration is a manual process, but in real life scenario, model calibration should happed daily before start of the trading day, so we need to make a scheduler for calibrator. Calibrator will be starting according to schedule, generate model config, and when the server is ready to start, new config is already ready. Estimated time: 3 hours.
+1. Support of client subscription to time interval. As the main use-case for our library is trading algo requiring precise forecast of the trading volume within some time interval, such as VWAP, we need to implement support of client subscription to time interval when client receives volume curve normalized to requested time interval. Estimated time: 5 hours.
+2. Calibration automation. Currently calibration is a manual process, but in real life scenario, model calibration should happed daily before start of the trading day, so we need to make a scheduler for calibrator. Calibrator will be starting according to schedule, generate model config, and when the server is ready to start, new config is already ready. Estimated time: 4 hours.
 3. Test client enhancements. Need to plot predicted volume as a separate series on the same plot with the volume curve. This plot should be updated on the market data tick. This is a minor item as this client is used only during testing, the real client of this library is a trading algo. Estimated time: 2 hours.
+4. Create Solution Desing Document. Estimated time: 3 hours.
