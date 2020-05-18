@@ -61,8 +61,8 @@ class SubUnmarshaller(Unmarshaller):
 
 class NumberMarshaller(Marshaller):
     def marshall(self, value):
-        return {'type': 'result', 'value': value}
+        return {'type': 'volume', 'value': value}
 
 class SeriesMarshaller(Marshaller):
     def marshall(self, value):
-        return {'type': 'result', 'value': value[0]}
+        return {'type': 'curve', 'times': [i.strftime('%H:%M') for i in value.index], 'values': (value.values*100).tolist()}

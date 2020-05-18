@@ -84,13 +84,13 @@
     <div class="form-style">
     <div class="form-style-heading" id="form-title">TICKER Client</div>
     <form action="" method="post">
-    <label><span>Start time</span><input type="time" class="input-field" id="start" value="" min="09:00" max="15:59"/></label>
-    <label><span>End time</span><input type="time" class="input-field" id="end" value="" min="09:00" max="15:59"/></label>
+    <label><span>Start time</span><input type="time" class="input-field" id="start" value="09:00" min="09:00" max="15:59"/></label>
+    <label><span>End time</span><input type="time" class="input-field" id="end" value="15:59" min="09:00" max="15:59"/></label>
 
-    <label><span> </span><input type="button" value="Subscribe" onclick="onSubmit()"/></label>
+    <label><span> </span><input type="button" value="Get Curve" onclick="onSubmit()"/></label>
     <label><span>Volume</span><input id="response" class="input-field" value="" disabled/></label>
 
-    <div id="curve" style="width:600px;height:300px;"></div>
+    <div id="curve" style="width:700px;height:400px;"></div>
 
     </form>
     </div>
@@ -124,6 +124,7 @@
             websocket.onopen = function() {
                 var formTitle = document.getElementById('form-title')
                 formTitle.textContent = formTitle.textContent + ': Connected';
+                websocket.send(JSON.stringify({action: 'sub', ticker:'TICKER', start:inputStart.value, end:inputEnd.value}))
             };
             websocket.onerror = function(error) {
                 var formTitle = document.getElementById('form-title')
@@ -132,23 +133,29 @@
             websocket.onmessage = function (event) {
                 data = JSON.parse(event.data);
                 switch (data.type) {
-                    case 'result':
-                        outputResult.textContent = data.value;
+                    case 'volume':
+                        outputResult.value = data.value;
+                        break;
+                    case 'curve':
+                        //outputResult.value = data.value;
+                        plotCurve(data);
                         break;
                     default:
                         console.error("unsupported event", data);
                 }
             };
 
-            function plotCurve() {
+            function plotCurve(data) {
                 CURVE = document.getElementById('curve');
                 traces = [{
-                    x: [1, 2, 3, 4, 5],
-                    y: [1, 2, 4, 8, 16] }];
-                layout = { margin: {t:50,l:20,r:20,b:50}, title : {text : 'Volatility curve', font : {family:'Arial, Helvetica, sans-serif', size:13}} };
+                    x: data.times,
+                    y: data.values
+                }];
+                layout = { margin: {t:50,l:30,r:30}, title : {text : 'Volatility curve', font : {family:'Arial, Helvetica, sans-serif', size:13}},
+                        xaxis: {tickangle:45, nticks:20}, yaxis:{'title':{'text':'%'}}
+                };
                 Plotly.newPlot( CURVE, traces, layout );
             }
-            plotCurve();
 
         </script>
 

@@ -27,7 +27,7 @@ def parse_arguments():
     args_parser.add_argument("--iex_token", help="IEX TOKEN for downloading data", required=False)
     args_parser.add_argument("--from", help="Start date for downloading data", required=False)
     args_parser.add_argument("--to", help="End date for downloading data", required=False)
-    args_parser.add_argument("--ticker", help="Ticker for client", required=False, default='GOOGL')
+    args_parser.add_argument("--ticker", help="Ticker for client", required=False)
     args_parser.add_argument("--delay", help="Delay in milliseconds for publisher", required=False, type=lambda d: int(d), default=1000)
     args_parser.add_argument("--date", help="Date for publisher", required=False, type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), default='2019-05-01')
 
@@ -64,7 +64,7 @@ def start_server(settings):
     message_converter.register_unmarshaller('sub', SubUnmarshaller())
     message_converter.register_marshaller('float64', NumberMarshaller())
     message_converter.register_marshaller('int', NumberMarshaller())
-    message_converter.register_marshaller('pandas.Series', SeriesMarshaller())
+    message_converter.register_marshaller('Series', SeriesMarshaller())
 
     handler = WSHandler(message_converter)
     app = web.Application()
@@ -86,19 +86,21 @@ def start_server(settings):
 
 def start_client(settings, args):
     # start client --ticker=MSFT
-    ticker = args.ticker
+    tickers = [args.ticker] if args.ticker else [s.split('.')[1] for s in settings.sections() if s.startswith('model.')]
+
     #url = f"file://{os.path.realpath('client/client.html')}?host={settings['server']['host']}&port={settings['server']['port']}&ticker={ticker}"
-    if not os.path.exists(f'client/client_{ticker}.html'):
-        f = open('client/client.html', 'rt')
-        html = f.read()
-        f.close()
-        html = html.replace('HOST', settings['server']['host'])
-        html = html.replace('PORT', settings['server']['port'])
-        html = html.replace('TICKER', ticker)
-        f = open(f'client/client_{ticker}.html', 'wt')
-        f.write(html)
-        f.close()
-    webbrowser.open(f"file://{os.path.realpath('client/client_'+ticker+'.html')}", new=2)
+    for ticker in tickers:
+        if not os.path.exists(f'client/client_{ticker}.html'):
+            f = open('client/client.html', 'rt')
+            html = f.read()
+            f.close()
+            html = html.replace('HOST', settings['server']['host'])
+            html = html.replace('PORT', settings['server']['port'])
+            html = html.replace('TICKER', ticker)
+            f = open(f'client/client_{ticker}.html', 'wt')
+            f.write(html)
+            f.close()
+        webbrowser.open(f"file://{os.path.realpath('client/client_'+ticker+'.html')}", new=2)
 
 
 def start_publisher(settings, args):
