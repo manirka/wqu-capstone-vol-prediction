@@ -84,10 +84,12 @@
     <div class="form-style">
     <div class="form-style-heading" id="form-title">TICKER Client</div>
     <form action="" method="post">
-    <label><span>Start time</span><input type="time" class="input-field" id="start" value="09:00" min="09:00" max="15:59"/></label>
-    <label><span>End time</span><input type="time" class="input-field" id="end" value="15:59" min="09:00" max="15:59"/></label>
+    <!--label><span>Start time</span><input type="time" class="input-field" id="start" value="09:00" min="09:00" max="15:59"/></label>
+    <label><span>End time</span><input type="time" class="input-field" id="end" value="15:59" min="09:00" max="15:59"/></label-->
+    <label><input type="time" class="input-field" id="start" value="09:00" min="09:00" max="15:59" hidden/></label>
+    <label><input type="time" class="input-field" id="end" value="15:59" min="09:00" max="15:59" hidden/></label>
 
-    <label><span> </span><input type="button" value="Get Curve" onclick="onSubmit()"/></label>
+    <!--label><span> </span><input type="button" value="Get Curve" onclick="onSubmit()"/></label-->
     <label><span>Volume</span><input id="response" class="input-field" value="" disabled/></label>
 
     <div id="curve" style="width:700px;height:400px;"></div>
@@ -96,30 +98,21 @@
     </div>
 
         <script>
-            //#var args = location.search.substring(1).split("&");
-            //#var params = {}
-            //#args.forEach(function(arg){
-            //#    var pair = arg.split("=");
-            //#    params[pair[0]] = pair[1];
-            //#});
-            //#formTitle = document.getElementById('form-title');
-            //#formTitle.textContent = params['ticker'] + ' Client';
-
             var websocket = new WebSocket("ws://HOST:PORT/client/TICKER/");
             inputStart = document.getElementById('start');
             inputEnd = document.getElementById('end');
             outputResult = document.getElementById('response');
-            function onSubmit() {
-                var startTime = inputStart.value;
-                var endTime = inputEnd.value;
-                if (endTime < startTime) {
-                    alert('Start time should be before end time');
-                } else if (inputStart.value.length == 0 || inputEnd.value.length == 0) {
-                    alert('Input both start and end times');
-                } else {
-                    websocket.send(JSON.stringify({action: 'sub', ticker:'TICKER', start:inputStart.value, end:inputEnd.value}));
-                }
-            };
+            //function onSubmit() {
+            //    var startTime = inputStart.value;
+            //    var endTime = inputEnd.value;
+            //    if (endTime < startTime) {
+            //        alert('Start time should be before end time');
+            //    } else if (inputStart.value.length == 0 || inputEnd.value.length == 0) {
+            //        alert('Input both start and end times');
+            //    } else {
+            //        websocket.send(JSON.stringify({action: 'sub', ticker:'TICKER', start:inputStart.value, end:inputEnd.value}));
+            //    }
+            //};
 
             websocket.onopen = function() {
                 var formTitle = document.getElementById('form-title')
