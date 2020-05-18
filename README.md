@@ -4,6 +4,8 @@ This is an open source library implementing Bayesian updating for intraday volum
 
 To train and test our model we used one-minute bars of the following stocks: FB, MSFT, GOOGL, JNJ, V downloaded from [IEX Cloud](https://iexcloud.io/).
 
+## Components
+
 Library consists of the following components:
 
 * **Calibrator** generating config file for the model

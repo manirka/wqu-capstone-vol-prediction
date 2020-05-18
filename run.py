@@ -2,7 +2,6 @@ import asyncio
 import datetime
 import logging.config
 import os
-import re
 
 logging.config.fileConfig('config/logging.conf')
 log = logging.getLogger(__name__)
@@ -57,8 +56,6 @@ def main():
 
 
 def start_server(settings):
-    log.info('START')
-
     message_converter = MessageConverter()
     message_converter.register_unmarshaller('bar', BarUnmarshaller())
     message_converter.register_unmarshaller('sub', SubUnmarshaller())
@@ -80,8 +77,6 @@ def start_server(settings):
             app.add_routes([web.get(f'/md/{model_name}/', handler.handle_marketdata)])
 
     web.run_app(app, host=settings['server']['host'], port=settings['server']['port'])
-
-    log.info('END')
 
 
 def start_client(settings, args):
