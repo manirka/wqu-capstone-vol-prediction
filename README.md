@@ -64,3 +64,4 @@ See also the list of [contributors](https://github.com/manirka/wqu-capstone-vol-
 2. Calibration automation. Currently calibration is a manual process, but in real life scenario, model calibration should happed daily before start of the trading day, so we need to make a scheduler for calibrator. Calibrator will be starting according to schedule, generate model config, and when the server is ready to start, new config is already ready. Estimated time: 4 hours.
 3. Test client enhancements. Need to plot predicted volume as a separate series on the same plot with the volume curve. This plot should be updated on the market data tick. This is a minor item as this client is used only during testing, the real client of this library is a trading algo. Estimated time: 2 hours.
 4. Create Solution Desing Document. Estimated time: 3 hours.
+5. Add numerical results from testing into Project document. Estimated time: 2 hours.
