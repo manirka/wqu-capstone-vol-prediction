@@ -65,3 +65,6 @@ See also the list of [contributors](https://github.com/manirka/wqu-capstone-vol-
 3. Test client enhancements. Need to plot predicted volume as a separate series on the same plot with the volume curve. This plot should be updated on the market data tick. This is a minor item as this client is used only during testing, the real client of this library is a trading algo. Estimated time: 2 hours.
 4. Create Solution Desing Document. Estimated time: 3 hours.
 5. Add numerical results from testing into Project document. Estimated time: 2 hours.
+6. Add model performance comparison with the benchmark into project document.
+7. Create presentation.
+8. Record video.
