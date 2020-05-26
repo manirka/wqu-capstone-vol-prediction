@@ -51,9 +51,10 @@ class WSHandler(Listener):
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 log.info(f'received MD {msg.data}')
-                response = listener.on_message(self._message_converter.unmarshall(msg.data))
+                bar = self._message_converter.unmarshall(msg.data)
+                bar['prediction'] = listener.on_message(bar)
                 # on market data update notify all clients
-                await self.notify_clients(key, self._message_converter.marshall(response))
+                await self.notify_clients(key, self._message_converter.marshall(bar))
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 log.info(f'ws connection closed with exception {ws.exception()}')
 

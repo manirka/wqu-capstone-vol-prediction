@@ -52,8 +52,6 @@ class BarUnmarshaller(Unmarshaller):
     def unmarshall(self, request):
         timestamp = datetime.datetime.strptime(request['datetime'], '%Y-%m-%d %H:%M:%S')
         return pd.Series({'ticker':request['ticker'], 'time':timestamp.time() ,'volume':request['volume']}, name=timestamp)
-#        return pd.Series({f: request[f] for f in ['ticker', 'open', 'close', 'volume']},
-#                      name=datetime.datetime.strptime(request['datetime'], '%Y-%m-%d %H:%M:%S'))
 
 class SubUnmarshaller(Unmarshaller):
     def unmarshall(self, request):
@@ -65,4 +63,7 @@ class NumberMarshaller(Marshaller):
 
 class SeriesMarshaller(Marshaller):
     def marshall(self, value):
-        return {'type': 'curve', 'times': [i.strftime('%H:%M') for i in value.index], 'values': (value.values*100).tolist()}
+        if 'prediction' in value.index:
+            return {'type': 'volume', 'volume': value['volume'], 'time': value['time'].strftime('%H:%M'), 'prediction': value['prediction']}
+        else:
+            return {'type': 'curve', 'times': [i.strftime('%H:%M') for i in value.index], 'values': (value.values*100).tolist()}
