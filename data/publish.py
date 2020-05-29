@@ -17,7 +17,7 @@ class TickerPublisher:
     def load_data(self):
         path = f'./data/intraday/{self._ticker}_intraday.2019-01-01_2019-12-31.pkl'
         all_bars = pd.read_pickle(path)
-        return all_bars[all_bars['date'] == self._date]
+        return all_bars[all_bars['date'] == self._date].head(-1)
 
     async def publish(self, url, delay):
         async with websockets.connect(f'{url}{self._ticker}/') as websocket:

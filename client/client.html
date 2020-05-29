@@ -118,6 +118,7 @@
             var vol_curve = [];
             var vol_times = [];
             var err_ale = [];
+            var firstTime = true;
 
             websocket.onopen = function() {
                 var formTitle = document.getElementById('form-title')
@@ -134,7 +135,10 @@
                     case 'volume':
                         outputResult.value = data.prediction;
                         updateVolume(data);
-                        updatePlot();
+                        updatePlot(data);
+                        if (firstTime) {
+                            firstTime = false;
+                        }
                         break;
                     case 'curve':
                         updateCurve(data);
@@ -148,21 +152,24 @@
             function updateCurve(data) {
                 vol_times = data.times;
                 vol_curve = data.values;
-                //vol_predictions = Array(vol_times.length).fill(0);
-                //vol_values = Array(vol_times.length).fill(0);
             };
 
             function updateVolume(data) {
                 var idx = vol_times.indexOf(data.time);
-                vol_predictions[idx] = 0.01 * vol_curve[idx] * data.prediction;
-                vol_values[idx] = data.volume;
-                var d = Math.log(data.prediction) - Math.log(data.volume);
-                d = Math.abs(d) * (d > 0 ? 2 : 1);
-                err_ale[idx] = d; //(isNaN(err_ale[idx-1]) || idx < 1) ? d : err_ale[idx-1] + d;
+                vol_value = data.volume;
+                if (idx > 2) { // skip first 2 updates as they distort the plots
+                    vol_predictions[idx+1] = 0.01 * vol_curve[idx] * data.prediction;;
+                    vol_prediction = vol_predictions[idx];
+                    vol_values[idx] = vol_value;
+                    var d = Math.log(vol_prediction) - Math.log(vol_value);
+                    if (!isNaN(vol_prediction)) {
+                        err_ale[idx] = Math.abs(d) * (d > 0 ? 2 : 1); //(isNaN(err_ale[idx-1]) || idx < 1) ? d : err_ale[idx-1] + d;
+                    }
+                }
             };
 
+            CURVE = document.getElementById('curve');
             function updatePlot() {
-                CURVE = document.getElementById('curve');
                 var trace_curve = {
                     x: vol_times,
                     y: vol_curve,
@@ -203,8 +210,12 @@
                     yaxis3: {title: 'Volume', side: 'right', overlaying: 'y2', rangemode: 'tozero', showgrid: false, domain: [0.35, 1]}
                 };
                 var traces = [trace_curve, trace_volume, trace_prediction, trace_ale];
-                Plotly.newPlot( CURVE, traces, layout );
-            }
+                if (firstTime) {
+                    Plotly.newPlot( CURVE, traces, layout );
+                } else {
+                    Plotly.update( CURVE, traces, layout );
+                }
+            };
 
         </script>
 

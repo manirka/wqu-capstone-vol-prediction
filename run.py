@@ -19,7 +19,6 @@ from model.calibrate import *
 from server.marshaller import *
 from server.wshandler import WSHandler
 
-
 def parse_arguments():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument("action", help="supported actions: start, download")
@@ -29,7 +28,7 @@ def parse_arguments():
     args_parser.add_argument("--to", help="End date for downloading data", required=False)
     args_parser.add_argument("--ticker", help="Ticker for client", required=False)
     args_parser.add_argument("--delay", help="Delay in milliseconds for publisher", required=False, type=lambda d: int(d), default=2000)
-    args_parser.add_argument("--date", help="Date for publisher", required=False, type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), default='2019-12-02')
+    args_parser.add_argument("--date", help="Date for publisher", required=False, type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), default='2019-12-23')
 
     return args_parser.parse_args()
 
@@ -111,10 +110,12 @@ def start_calibrator(settings, args):
         df = pd.read_pickle(f'./data/intraday/{model}_intraday.2019-01-01_2019-12-31.pkl')
         df = df[df.date < args.date].head(-1)
         vc, lv, lv_var = Calibrator(df).calibrate_ln_model()
+        log.info(f'Calibrating model for {model}')
         settings.set(f'model.{model}', 'vol_curve', np.array2string(vc, max_line_width=np.inf, separator=","))
         settings.set(f'model.{model}', 'log_volume_forecast', f'{lv}')
         settings.set(f'model.{model}', 'log_volume_var', f'{lv_var}')
     with open('config/settings.conf', 'w') as configfile:
+        log.info(f'Saving results to {configfile.name}')
         settings.write(configfile)
 
 
