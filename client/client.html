@@ -6,7 +6,7 @@
         <script src="plotly-latest.min.js"></script>
         <style type="text/css">
             .form-style {
-                max-width: 500px;
+                max-width: 700px;
                 padding: 20px 12px 10px 20px;
                 font: 13px Arial, Helvetica, sans-serif;
             }
@@ -23,7 +23,7 @@
                 margin: 0px 0px 15px 0px;
             }
             .form-style label > span {
-                width: 100px;
+                width: 200px;
                 font-weight: bold;
                 float: left;
                 padding-top: 8px;
@@ -90,9 +90,9 @@
     <label><input type="time" class="input-field" id="end" value="15:59" min="09:00" max="15:59" hidden/></label>
 
     <!--label><span> </span><input type="button" value="Get Curve" onclick="onSubmit()"/></label-->
-    <label><span>Volume</span><input id="response" class="input-field" value="" disabled/></label>
+    <label><span>Predicted daily Volume</span><input id="response" class="input-field" value="" disabled/></label>
 
-    <div id="curve" style="width:700px;height:400px;"></div>
+    <div id="curve" style="width:700px;height:600px;"></div>
 
     </form>
     </div>
@@ -113,6 +113,12 @@
             //        websocket.send(JSON.stringify({action: 'sub', ticker:'TICKER', start:inputStart.value, end:inputEnd.value}));
             //    }
             //};
+            var vol_predictions = [];
+            var vol_values = [];
+            var vol_curve = [];
+            var vol_times = [];
+            var err_ale = [];
+            var firstTime = true;
 
             websocket.onopen = function() {
                 var formTitle = document.getElementById('form-title')
@@ -127,28 +133,89 @@
                 data = JSON.parse(event.data);
                 switch (data.type) {
                     case 'volume':
-                        outputResult.value = data.value;
+                        outputResult.value = data.prediction;
+                        updateVolume(data);
+                        updatePlot(data);
+                        if (firstTime) {
+                            firstTime = false;
+                        }
                         break;
                     case 'curve':
-                        //outputResult.value = data.value;
-                        plotCurve(data);
+                        updateCurve(data);
+                        updatePlot();
                         break;
                     default:
                         console.error("unsupported event", data);
                 }
             };
 
-            function plotCurve(data) {
-                CURVE = document.getElementById('curve');
-                traces = [{
-                    x: data.times,
-                    y: data.values
-                }];
-                layout = { margin: {t:50,l:30,r:30}, title : {text : 'Volatility curve', font : {family:'Arial, Helvetica, sans-serif', size:13}},
-                        xaxis: {tickangle:45, nticks:20}, yaxis:{'title':{'text':'%'}}
+            function updateCurve(data) {
+                vol_times = data.times;
+                vol_curve = data.values;
+            };
+
+            function updateVolume(data) {
+                var idx = vol_times.indexOf(data.time);
+                vol_value = data.volume;
+                if (idx > 2) { // skip first 2 updates as they distort the plots
+                    vol_predictions[idx+1] = 0.01 * vol_curve[idx] * data.prediction;;
+                    vol_prediction = vol_predictions[idx];
+                    vol_values[idx] = vol_value;
+                    var d = Math.log(vol_prediction) - Math.log(vol_value);
+                    if (!isNaN(vol_prediction)) {
+                        err_ale[idx] = Math.abs(d) * (d > 0 ? 2 : 1); //(isNaN(err_ale[idx-1]) || idx < 1) ? d : err_ale[idx-1] + d;
+                    }
+                }
+            };
+
+            CURVE = document.getElementById('curve');
+            function updatePlot() {
+                var trace_curve = {
+                    x: vol_times,
+                    y: vol_curve,
+                    yaxis: 'y2',
+                    type: 'bar',
+                    name: 'vol curve'
                 };
-                Plotly.newPlot( CURVE, traces, layout );
-            }
+                var trace_volume = {
+                    x: vol_times,
+                    y: vol_values,
+                    yaxis: 'y3',
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'realized volume'
+                };
+                var trace_prediction = {
+                    x: vol_times,
+                    y: vol_predictions,
+                    yaxis: 'y3',
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'predicted volume'
+                };
+                var trace_ale = {
+                    x: vol_times,
+                    y: err_ale,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'ALE'
+                };
+                layout = {
+                    //margin: {t:50,l:30,r:30},
+                    title:  {text : 'Volume curve', font : {family:'Arial, Helvetica, sans-serif', size:13}},
+                    legend: {orientation: 'h', y: -0.2},
+                    xaxis:  {tickangle:45, nticks:20, showgrid: true},
+                    yaxis:  {title: 'ALE', domain: [0, 0.3]},
+                    yaxis2: {title: '%', rangemode: 'tozero', domain: [0.35, 1]},
+                    yaxis3: {title: 'Volume', side: 'right', overlaying: 'y2', rangemode: 'tozero', showgrid: false, domain: [0.35, 1]}
+                };
+                var traces = [trace_curve, trace_volume, trace_prediction, trace_ale];
+                if (firstTime) {
+                    Plotly.newPlot( CURVE, traces, layout );
+                } else {
+                    Plotly.update( CURVE, traces, layout );
+                }
+            };
 
         </script>
 
