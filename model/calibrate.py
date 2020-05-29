@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from pmdarima.arima import auto_arima
+from statsmodels.tsa.arima_model import ARMA
 
 # Logic
 # - read last 21+ days of intraday
@@ -29,8 +29,8 @@ class Calibrator:
         if len(daily_volume) > ROLLING_WINDOW * 3:
             daily_volume["mu_lv"] = daily_volume.lv.rolling(ROLLING_WINDOW, min_periods=1).mean().transform(np.ceil)
             daily_volume["excess_lv"] = daily_volume.lv - daily_volume.mu_lv
-            model = auto_arima(daily_volume.excess_lv.dropna(), start_p=1, start_q=1, max_p=3, max_q=2, seasonal=False, d=0)
-            predicted_excess = model.predict(1)[0]
+            model = ARMA(daily_volume.reset_index().excess_lv.dropna(), (1, 1)).fit(disp=False)
+            predicted_excess = model.forecast(1)[0]
             predicted_daily_lv = daily_volume.mu_lv.array[-1] + predicted_excess
         else:
             # fallback to volume geometric mean if there are too few observations
@@ -52,7 +52,10 @@ class Calibrator:
         minutely_volume['time'] = minutely_volume.index.time
 
         vc = minutely_volume.loc[:, ['time', 'raw_vc']].groupby('time').mean()  # average over days
-        vc['smoothed'] = vc.raw_vc.rolling(window=3, min_periods=1).mean()  # use rolling avg to smooth
+        # use rolling avg to smooth
+        fwd = vc.raw_vc.rolling(3).mean()
+        bkwd = vc.raw_vc.iloc[::-1].rolling(3).mean().iloc[::-1]
+        vc['smoothed'] = pd.concat([bkwd.iloc[:200], fwd.iloc[200:]])
         return vc.smoothed.values / vc.smoothed.sum()  # normalize to 1
 
     def _get_daily_volume(self):

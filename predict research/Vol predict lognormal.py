@@ -31,7 +31,7 @@ module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-from model.calibrate import calibrate_ln_model
+from model.calibrate import Calibrator
 from model.start import Model
 
 from pandas.plotting import register_matplotlib_converters
@@ -128,7 +128,7 @@ def predict_day(dt, k0):
     train_start_dt, train_end_dt = dates[[i+6*rollingWindow+1, i+1]]
     df_train = intraday[intraday.date.between(train_start_dt, train_end_dt)]
     
-    vc, initial_log_volume_forecast, log_volume_var = calibrate_ln_model(df_train)
+    vc, initial_log_volume_forecast, log_volume_var = Calibrator(df_train).calibrate_ln_model()
     model = Model(ticker, vc, initial_log_volume_forecast, log_volume_var, k0)
 
     naivePrediction = np.repeat((gmean(df_train.groupby('date').volume.sum()[-rollingWindow:-1])), len(df_validate))
@@ -193,5 +193,3 @@ errors
 
 errors.loc[:,['ALE_full','ALE_naive']].plot()
 plt.show()
-
-
