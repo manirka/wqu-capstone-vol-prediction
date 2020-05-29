@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 class Model(Listener):
 
-    def __init__(self, ticker, vol_curve, log_volume_forecast, log_volume_var, k0=0.8):
+    def __init__(self, ticker, vol_curve, log_volume_forecast, log_volume_var, k0=0.8*21):
         super().__init__()
         self._log_volume_var = log_volume_var
         self._ticker = ticker
@@ -50,7 +50,9 @@ class Model(Listener):
             mu = (n * xbar / var_x + self._log_volume_forecast / self._log_volume_var) / \
                  (n / var_x + 1 / self._log_volume_var)
         self._bars.loc[t, 'mu'] = mu
-        self._bars.loc[message.time, 'pred_v'] = pred_v = np.ceil(np.exp(mu))
+
+        pred_v = np.ceil(np.exp(mu)) * (1 - self._bars.loc[:t].vc.sum()) + self._bars.v.sum()
+        self._bars.loc[message.time, 'pred_v'] = pred_v
 
         return pred_v
 
