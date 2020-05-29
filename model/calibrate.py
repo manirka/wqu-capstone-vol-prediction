@@ -72,6 +72,9 @@ class Calibrator:
 
 
 if __name__ == "__main__":
-    df = pd.read_pickle("../data/intraday/JNJ_intraday.2019-01-01_2019-12-31.pkl")
-    vc, lv, lv_var = Calibrator(df.head(-1)).calibrate_ln_model()
-    print(f'vol_curve={np.array2string(vc, max_line_width=np.inf, separator=",")}\nlog_volume_forecast={lv}\nlog_volume_var={lv_var}')
+    df = pd.read_pickle("../data/intraday/FB_intraday.2019-01-01_2019-12-31.pkl")
+    train_df = df.loc[:'20191217']
+    vc, lv, lv_var = Calibrator(train_df).calibrate_ln_model()
+    print(f'vol_curve = {np.array2string(vc, max_line_width=np.inf, separator=",")}')
+    print(f'log_volume_forecast = {lv[0]}')
+    print(f'log_volume_var = {lv_var}')
