@@ -33,23 +33,43 @@ In order to test the library, please calibrate the model for required ticker and
 
 ## Running 
 
-To start server 
-```
-python3 run.py start server 
-```
+1. To calibrate the model for the particular date
+    ```
+    python3 run.py start calibrator --date=2019.12.18 
+    ```
+2. To start the server 
+    ```
+    python3 run.py start server 
+    ```
+3. To start market data publisher in replay mode
+    ```
+    python3 run.py start publisher --date=2019-12-19 --delay=500
+    ```
+4. To start client (this will open an html page in browser)
+    ```
+    python3 run.py start client --ticker=V
+    ```
 
-To start market data publisher
-```
-python3 run.py start publisher --date=2019-05-02 --delay=1000
-```
+## Message format
+Examples of json messages should be supported by market data publisher and client in the real live applications:
 
-To start client (this will open an html page in browser)
+1. Market data publisher<br>These one-minute bars should be sent to server once a minute:
 
-```
-python3 run.py start client --ticker=GOOGL
-```
+    ```json
+    { "action" : "bar", "ticker" : "FB", "datetime" : "2019-12-19 09:30:00", "volume" : 51930 }
+    ```
 
-TODO: automate and add command for model calibration (see **Outstanding Tasks** section).
+2. Client<br>Server sends to client volume curve on connection establishment:
+
+    ```json
+    { "type": "curve", "times" : ["09:30", "09:31", "09:32", "09:33"], "values" : [0.51, 0.39, 0.32, 0.28] }
+    ```
+
+    Server sends to client updated volume prediction and realized volume at given minute on each market data tick from the publisher:
+
+    ```json
+    { "type" : "volume", "time" : "09:31", "volume" : 52637, "prediction" : 2311962 }
+    ```
 
 ## Authors
 
