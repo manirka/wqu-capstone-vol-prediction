@@ -112,7 +112,7 @@ def start_calibrator(settings, args):
         vc, lv, lv_var = Calibrator(df).calibrate_ln_model()
         log.info(f'Calibrating model for {model}')
         settings.set(f'model.{model}', 'vol_curve', np.array2string(vc, max_line_width=np.inf, separator=","))
-        settings.set(f'model.{model}', 'log_volume_forecast', f'{lv}')
+        settings.set(f'model.{model}', 'log_volume_forecast', f'{lv[0]}')
         settings.set(f'model.{model}', 'log_volume_var', f'{lv_var}')
     with open('config/settings.conf', 'w') as configfile:
         log.info(f'Saving results to {configfile.name}')
