@@ -38,7 +38,7 @@ class Model(Listener):
         t = message.time
         v = message.volume
         if np.isnan(v) or v == 0:
-            v = self._bars.iloc[self._bars.index.get_loc(t) - 1, 'v']
+            v = self._bars.iloc[self._bars.index.get_loc(t) - 1].v
         self._bars.loc[t, 'v'] = v
         v = self._bars.v.rolling(3, min_periods=1).mean().loc[t]
         self._bars.loc[t, 'x'] = np.log(v / self._bars.loc[t, 'vc'])
