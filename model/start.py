@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 class Model(Listener):
 
-    def __init__(self, ticker, vol_curve, log_volume_forecast, log_volume_var, k0=0.8*21):
+    def __init__(self, ticker, vol_curve, log_volume_forecast, log_volume_var, k0=0.8 * 21):
         super().__init__()
         self._log_volume_var = log_volume_var
         self._ticker = ticker
@@ -36,7 +36,11 @@ class Model(Listener):
     def on_bar(self, message):
         log.info(f'{self._ticker} time: {message.time}, volume: {message.volume}')
         t = message.time
-        self._bars.loc[t, 'v'] = v = message.volume
+        v = message.volume
+        if np.isnan(v) or v == 0:
+            v = self._bars.iloc[self._bars.index.get_loc(t) - 1, 'v']
+        self._bars.loc[t, 'v'] = v
+        v = self._bars.v.rolling(3, min_periods=1).mean().loc[t]
         self._bars.loc[t, 'x'] = np.log(v / self._bars.loc[t, 'vc'])
         self._bars.loc[t, 'xbar'] = xbar = self._bars.x.dropna().mean()
 

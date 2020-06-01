@@ -29,7 +29,7 @@ class Calibrator:
         if len(daily_volume) > ROLLING_WINDOW * 3:
             daily_volume["mu_lv"] = daily_volume.lv.rolling(ROLLING_WINDOW, min_periods=1).mean().transform(np.ceil)
             daily_volume["excess_lv"] = daily_volume.lv - daily_volume.mu_lv
-            model = ARMA(daily_volume.reset_index().excess_lv.dropna(), (1, 1)).fit(disp=False)
+            model = ARMA(daily_volume.reset_index().excess_lv.dropna(), (2, 1)).fit(disp=False)
             predicted_excess = model.forecast(1)[0]
             predicted_daily_lv = daily_volume.mu_lv.array[-1] + predicted_excess
         else:
@@ -52,9 +52,9 @@ class Calibrator:
         minutely_volume['time'] = minutely_volume.index.time
 
         vc = minutely_volume.loc[:, ['time', 'raw_vc']].groupby('time').mean()  # average over days
-        # use rolling avg to smooth
-        fwd = vc.raw_vc.rolling(3).mean()
-        bkwd = vc.raw_vc.iloc[::-1].rolling(3).mean().iloc[::-1]
+        # use ewm to smooth
+        fwd = vc.raw_vc.ewm(span=3).mean()
+        bkwd = vc.raw_vc.iloc[::-1].ewm(span=3).mean().iloc[::-1]
         vc['smoothed'] = pd.concat([bkwd.iloc[:200], fwd.iloc[200:]])
         return vc.smoothed.values / vc.smoothed.sum()  # normalize to 1
 

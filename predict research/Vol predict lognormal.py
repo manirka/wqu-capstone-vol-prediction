@@ -25,7 +25,7 @@ import seaborn as sns
 from datetime import datetime
 from scipy.stats.mstats import gmean
 from statsmodels.graphics.tsaplots import plot_acf
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima_model import ARMA
 
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
@@ -82,7 +82,7 @@ daily.tail()
 plot_acf(daily.excess_lv.dropna(), lags=10)
 plt.show()
 
-model = ARIMA(daily.excess_lv.dropna(), order=(2,0,1))
+model = ARMA(daily.excess_lv.dropna(), order=(2,1))
 model_fit = model.fit(trend='nc')
 print(model_fit.summary())
 
@@ -103,8 +103,8 @@ plt.show()
 
 # +
 # rolling mean
-fwd = VC.raw_vc.rolling(3).mean()
-bkwd = VC.raw_vc.iloc[::-1].rolling(3).mean().iloc[::-1]
+fwd = VC.raw_vc.ewm(span=3).mean()
+bkwd = VC.raw_vc.iloc[::-1].ewm(span=3).mean().iloc[::-1]
 VC['vc'] = pd.concat([bkwd.iloc[:200],fwd.iloc[200:]])
 
 VC.vc = VC.vc/VC.vc.sum() # normalize to 1
@@ -141,12 +141,14 @@ def predict_day(dt, k0):
     res['pred'] = np.array(fullPrediction)
     res['naive'] = naivePrediction
     
-    return res, realized_volume
+    return res, np.exp(initial_log_volume_forecast), realized_volume
 
 
-df, realized = predict_day(np.datetime64(datetime(2019, 10, 30)), 0.8*rollingWindow)
+df, arma, realized = predict_day(np.datetime64(datetime(2019, 10, 30)), 0.8*rollingWindow)
 df.plot()
-plt.axhline(y=realized, c='red', ls='--')
+plt.axhline(y=realized, c='red', ls='--', label="Realized volume")
+plt.axhline(y=arma, c='blue', ls='--', label="Initial ARMA prediction")
+plt.legend()
 plt.show()
 
 
@@ -186,10 +188,14 @@ k0 = 0.8 * rollingWindow
 errors = pd.DataFrame(columns=['ALE_full', 'ALE_naive'], index=pd.to_datetime([]))
 for i, dt in enumerate(dates[:-6*rollingWindow-1]):
     print(dt)
-    df, realized = predict_day(dt, k0)
+    df, _, realized = predict_day(dt, k0)
     errors.loc[dt] = (ALE(df.pred, realized), ALE(df.naive, realized))
 # -
 errors
 
 errors.loc[:,['ALE_full','ALE_naive']].plot()
 plt.show()
+
+f"{((errors.ALE_naive - errors.ALE_full)/errors.ALE_full).mean():.0%}"
+
+
