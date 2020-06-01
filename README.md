@@ -35,7 +35,7 @@ In order to test the library, please calibrate the model for required ticker and
 
 1. To calibrate the model for the particular date
     ```
-    python3 run.py start calibrator --date=2019.12.18 
+    python3 run.py start calibrator --date=2019-12-18 
     ```
 2. To start the server 
     ```
@@ -80,11 +80,7 @@ See also the list of [contributors](https://github.com/manirka/wqu-capstone-vol-
 
 ## Outstanding Tasks
 
-1. Support of client subscription to time interval. As the main use-case for our library is trading algo requiring precise forecast of the trading volume within some time interval, such as VWAP, we need to implement support of client subscription to time interval when client receives volume curve normalized to requested time interval. Estimated time: 5 hours.
-2. Calibration automation. Currently calibration is a manual process, but in real life scenario, model calibration should happed daily before start of the trading day, so we need to make a scheduler for calibrator. Calibrator will be starting according to schedule, generate model config, and when the server is ready to start, new config is already ready. Estimated time: 4 hours.
-3. Test client enhancements. Need to plot predicted volume as a separate series on the same plot with the volume curve. This plot should be updated on the market data tick. This is a minor item as this client is used only during testing, the real client of this library is a trading algo. Estimated time: 2 hours.
-4. Create Solution Desing Document. Estimated time: 3 hours.
-5. Add numerical results from testing into Project document. Estimated time: 2 hours.
-6. Add model performance comparison with the benchmark into project document.
-7. Create presentation.
-8. Record video.
+1. Add an abstract class for model implementations which should allow users to implement and plug in via config file different model types.
+2. Support of client subscription to time interval. As the main use-case for our library is trading algo requiring precise forecast of the trading volume within some time interval, such as VWAP, we need to implement support of client subscription to time interval when client receives volume curve normalized to requested time interval.
+3. Add an abstract class for market data publisher with just one abstract method which should load data from external source and implemented by the users.
+4. Convert current replay client into proper monitoring tool.
